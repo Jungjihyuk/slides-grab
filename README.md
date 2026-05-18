@@ -19,14 +19,14 @@ The editor is pure javascript file. You can easily add up new features like addi
 </p>
 
 <p align="center">
-  <a href="https://github.com/vkehfdl1/slides-grab/releases/download/v0.0.1-demo/demo.mp4">
+  <a href="https://github.com/NomaDamas/slides-grab/releases/download/v0.0.1-demo/demo.mp4">
     <img src="docs/assets/demo.gif" alt="slides-grab demo" width="720">
   </a>
 </p>
 
 <p align="center">
   <strong>👉 See what slides-grab can do:</strong>
-  <a href="https://vkehfdl1.github.io/slides-grab/"><strong>Live Showcase Gallery</strong></a><br>
+  <a href="https://nomadamas.github.io/slides-grab/"><strong>Live Showcase Gallery</strong></a><br>
   Real presentations built with slides-grab — open any deck and flip through the slides.
 </p>
 
@@ -41,19 +41,19 @@ Paste one of these into your coding agent:
 **Claude Code:**
 
 ```
-Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/installation/claude.md and follow every step.
+Read https://raw.githubusercontent.com/NomaDamas/slides-grab/main/docs/installation/claude.md and follow every step.
 ```
 
 **Codex:**
 
 ```
-Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/installation/codex.md and follow every step.
+Read https://raw.githubusercontent.com/NomaDamas/slides-grab/main/docs/installation/codex.md and follow every step.
 ```
 
 Or use the repo directly if you want to develop on slides-grab itself:
 
 ```bash
-git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
+git clone https://github.com/NomaDamas/slides-grab.git && cd slides-grab
 npm ci && npx playwright install chromium
 ```
 
@@ -252,7 +252,7 @@ templates/        Slide HTML templates (cover, content, chart, ...)
 src/              Design styles data, style config, path resolution
 skills/           Shared Vercel-installable agent skills + references
 docs/             Installation & usage guides
-showcase/         Static gallery deployed to GitHub Pages (https://vkehfdl1.github.io/slides-grab/)
+showcase/         Static gallery deployed to GitHub Pages (https://nomadamas.github.io/slides-grab/)
 ```
 
 ## License
