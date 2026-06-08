@@ -67,3 +67,7 @@ screenshots/
 .ralph/
 .omx/
 .githubclaw/
+
+# Agent
+.claude/skills
+.codex/*

@@ -168,6 +168,15 @@ slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
 slides-grab figma      --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 ```
 
+세로 문서형 덱은 편집기 미리보기 크기를 다르게 열 수 있습니다.
+
+```bash
+slides-grab edit --slides-dir decks/resume --page-size a4
+slides-grab edit --slides-dir decks/custom --width 794px --height 1123px
+```
+
+편집기 프리셋은 `a4`, `a4-landscape`, `letter`, `letter-landscape` 등을 지원합니다. 사용자 지정 길이는 기본적으로 픽셀로 해석하며 `px`, `pt`, `in` 단위도 사용할 수 있습니다.
+
 > **주의:** `slides-grab convert`와 `slides-grab figma`는 현재 **실험적/불안정한** 기능입니다. 출력은 최선의 결과이며 PowerPoint 또는 Figma에서 수동 정리가 필요할 수 있습니다.
 
 ## 카드뉴스 작업 흐름

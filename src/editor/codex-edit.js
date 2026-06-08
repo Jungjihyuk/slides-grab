@@ -390,12 +390,22 @@ export function loadDesignMarkdownPromptBlock({ baseDir = process.cwd(), maxChar
   }
 }
 
-export function buildCodexEditPrompt({ slideFile, slidePath, userPrompt, slideMode = DEFAULT_SLIDE_MODE, selections = [], designBaseDir }) {
+export function buildCodexEditPrompt({
+  slideFile,
+  slidePath,
+  userPrompt,
+  slideMode = DEFAULT_SLIDE_MODE,
+  slideConfig = null,
+  selections = [],
+  designBaseDir,
+}) {
   const sanitizedPrompt = typeof userPrompt === 'string' ? userPrompt.trim() : '';
   if (!sanitizedPrompt) {
     throw new Error('Prompt must be a non-empty string.');
   }
-  const { coordinateSpaceLabel, sizeLabel } = getSlideModeConfig(slideMode);
+  const effectiveSlideConfig = slideConfig || getSlideModeConfig(slideMode);
+  const { coordinateSpaceLabel, sizeLabel } = effectiveSlideConfig;
+  const isCustomPageSize = Boolean(effectiveSlideConfig.isCustomPageSize);
 
   const normalizedSlidePath = typeof slidePath === 'string' && slidePath.trim() !== ''
     ? slidePath.trim()
@@ -421,7 +431,9 @@ export function buildCodexEditPrompt({ slideFile, slidePath, userPrompt, slideMo
     .replaceAll('720pt x 405pt', sizeLabel)
     .replace(
       'Run `slides-grab validate --slides-dir <path>` after editing.',
-      `Run \`slides-grab validate --slides-dir <path>${slideMode === DEFAULT_SLIDE_MODE ? '' : ` --mode ${slideMode}`}\` after editing.`,
+      isCustomPageSize
+        ? `Run \`slides-grab validate --slides-dir <path>${slideMode === DEFAULT_SLIDE_MODE ? '' : ` --mode ${slideMode}`}\` after editing for semantic and asset checks; preserve the custom ${sizeLabel} page size if legacy frame checks disagree.`
+        : `Run \`slides-grab validate --slides-dir <path>${slideMode === DEFAULT_SLIDE_MODE ? '' : ` --mode ${slideMode}`}\` after editing.`,
     );
   const editorPromptLines = editorPrompt
     ? [

@@ -2,7 +2,7 @@
 
 import { state, TOOL_MODE_DRAW, TOOL_MODE_SELECT, setSlideFrame } from './editor-state.js';
 import {
-  btnPrev, btnNext, slideIframe, slideWrapper, drawLayer, promptInput, modelSelect,
+  btnPrev, btnNext, slideIframe, slideFrameMeta, slideWrapper, drawLayer, promptInput, modelSelect,
   btnSend, btnClearBboxes, slideCounter,
   toggleBold, toggleItalic, toggleUnderline, toggleStrike,
   alignLeft, alignCenter, alignRight,
@@ -267,6 +267,14 @@ function applySlideFrameCss(width, height) {
   }
 }
 
+function applySlideFrameMeta(cfg) {
+  if (!slideFrameMeta) return;
+  const coordinate = cfg?.coordinateSpaceLabel || '';
+  const size = cfg?.sizeLabel || '';
+  const preset = cfg?.pageSizeLabel && cfg.pageSizeLabel !== size ? `${cfg.pageSizeLabel} · ` : '';
+  slideFrameMeta.textContent = `${preset}${coordinate}${coordinate && size ? ' · ' : ''}${size}`;
+}
+
 async function loadEditorConfig() {
   try {
     const res = await fetch('/api/config');
@@ -277,6 +285,7 @@ async function loadEditorConfig() {
     if (w && h) {
       setSlideFrame(w, h);
       applySlideFrameCss(w, h);
+      applySlideFrameMeta(cfg);
     }
     if (cfg?.slideMode && document?.body) {
       document.body.dataset.slideMode = cfg.slideMode;

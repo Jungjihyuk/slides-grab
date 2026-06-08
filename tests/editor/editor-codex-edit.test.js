@@ -96,7 +96,7 @@ test('buildCodexEditPrompt includes user prompt, bbox, and XPath targets', () =>
   assert.match(prompt, /Region 1/);
   assert.match(prompt, /Slide edit rules \(follow strictly\):/);
   assert.match(prompt, /primary objective/i);
-  assert.match(prompt, /Keep slide size appropriate for the current mode/);
+  assert.match(prompt, /Keep slide size appropriate for the current editor page size/);
   assert.match(prompt, /Prefer Lucide as the default icon library/i);
   assert.match(prompt, /Do not default to emoji/i);
   assert.match(prompt, /slides-grab image/i);

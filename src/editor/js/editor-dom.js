@@ -10,6 +10,7 @@ export const slideStatusChip = $('#slide-status-chip');
 export const slideIframe = $('#slide-iframe');
 export const slidePanel = $('#slide-panel');
 export const slideStage = $('#slide-stage');
+export const slideFrameMeta = $('#slide-frame-meta');
 export const slideWrapper = $('#slide-wrapper');
 export const bboxLayer = $('#bbox-layer');
 export const objectLayer = $('#object-layer');
