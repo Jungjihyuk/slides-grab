@@ -264,10 +264,22 @@ program
   .option('--port <number>', 'Server port')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
   .option('--mode <mode>', 'Slide mode: presentation or card-news', 'presentation')
+  .option('--page-size <size>', 'Editor page size preset: presentation, card-news, a4, a4-landscape, letter, letter-landscape')
+  .option('--width <length>', 'Custom editor page width (px default; supports px, pt, in)')
+  .option('--height <length>', 'Custom editor page height (px default; supports px, pt, in)')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir, '--mode', options.mode];
     if (options.port) {
       args.push('--port', String(options.port));
+    }
+    if (options.pageSize) {
+      args.push('--page-size', String(options.pageSize));
+    }
+    if (options.width) {
+      args.push('--width', String(options.width));
+    }
+    if (options.height) {
+      args.push('--height', String(options.height));
     }
     await runCommand('scripts/editor-server.js', args);
   });

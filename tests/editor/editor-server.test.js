@@ -417,3 +417,85 @@ test('card-news editor mode passes square sizing guidance into Codex apply runs'
     await rm(workspace, { recursive: true, force: true });
   }
 });
+
+test('A4 editor page size is exposed to the UI and Codex apply prompt', async () => {
+  const workspace = await createWorkspace({
+    slideHtml: `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 595.28pt; height: 841.89pt; overflow: hidden; }
+      body { font-family: sans-serif; }
+      .frame { width: 100%; height: 100%; padding: 48pt; box-sizing: border-box; }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <h1>A4 resume</h1>
+      <p>Experience and portfolio highlights.</p>
+    </div>
+  </body>
+</html>`,
+  });
+  const mockCodex = await writeMockCli(workspace, 'mock-codex.js');
+  const port = await getAvailablePort();
+  const server = spawnEditorServer(workspace, port, {
+    args: ['--page-size', 'a4'],
+    env: {
+      PPT_AGENT_CODEX_BIN: mockCodex,
+    },
+  });
+
+  try {
+    await waitForServerReady(port, server.child, server.output);
+
+    const configRes = await fetch(`http://localhost:${port}/api/config`);
+    assert.equal(configRes.status, 200);
+    const config = await configRes.json();
+    assert.equal(config.pageSize, 'a4');
+    assert.equal(config.pageSizeLabel, 'A4 portrait');
+    assert.deepEqual(config.framePx, { width: 794, height: 1123 });
+    assert.deepEqual(config.screenshotPx, { width: 1131, height: 1600 });
+    assert.equal(config.coordinateSpaceLabel, '794x1123');
+
+    const applyRes = await fetch(`http://localhost:${port}/api/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slide: 'slide-01.html',
+        prompt: 'Tighten the resume header spacing.',
+        selections: [
+          {
+            x: 40,
+            y: 60,
+            width: 500,
+            height: 160,
+            targets: [
+              {
+                xpath: '/html/body/div[1]/h1[1]',
+                tag: 'h1',
+                text: 'A4 resume',
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    const applyBody = await applyRes.json();
+    assert.equal(applyRes.status, 200, JSON.stringify(applyBody));
+    assert.equal(applyBody.success, true);
+
+    const logRes = await fetch(`http://localhost:${port}/api/runs/${applyBody.runId}/log`);
+    assert.equal(logRes.status, 200);
+    const log = await logRes.text();
+
+    assert.match(log, /Selected regions on slide \(794x1123 coordinate space\):/);
+    assert.match(log, /Keep slide dimensions at 595\.28pt x 841\.89pt\./);
+    assert.match(log, /preserve the custom 595\.28pt x 841\.89pt page size/i);
+  } finally {
+    await stopChild(server.child);
+    await rm(workspace, { recursive: true, force: true });
+  }
+});

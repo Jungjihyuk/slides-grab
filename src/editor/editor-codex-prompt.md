@@ -15,7 +15,7 @@ The user's edit request is the primary objective. All rules below exist to suppo
 5. Return after applying the change.
 
 ## Slide Rules
-- Keep slide size appropriate for the current mode (`720pt x 405pt` for presentation, `720pt x 720pt` for card-news).
+- Keep slide size appropriate for the current editor page size. The exact dimensions are injected into each edit request.
 - Keep semantic text tags (`p`, `h1-h6`, `ul`, `ol`, `li`).
 - Never place text directly in `<div>` or `<span>`.
 - Always include `#` prefix in CSS colors.

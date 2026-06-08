@@ -175,9 +175,7 @@
     .slide-stage {
       flex: 1;
       min-height: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
       overflow: hidden;
       position: relative;
       padding: 28px;
@@ -446,11 +444,16 @@
     }
 
     .slide-wrapper {
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 960px;
       height: 540px;
-      transform-origin: top center;
+      transform-origin: top left;
       z-index: 1;
+      background: #ffffff;
+      outline: 2px solid rgba(96, 165, 250, 0.9);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.96), 0 18px 48px rgba(0, 0, 0, 0.45);
     }
 
     .slide-wrapper iframe {
@@ -462,6 +465,37 @@
       display: block;
       position: relative;
       z-index: 1;
+    }
+
+    .slide-frame-meta {
+      position: absolute;
+      left: 16px;
+      top: 12px;
+      z-index: 18;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 26px;
+      padding: 0 10px;
+      border: 1px solid rgba(96, 165, 250, 0.32);
+      border-radius: 999px;
+      background: rgba(2, 6, 23, 0.78);
+      color: #cbd5e1;
+      font-size: 11px;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: 0;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .slide-frame-meta::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      border: 1px solid rgba(96, 165, 250, 0.95);
+      background: rgba(96, 165, 250, 0.18);
     }
 
     .bbox-layer {
@@ -1590,6 +1624,7 @@
     <div class="main-content">
       <div class="slide-panel" id="slide-panel">
         <div class="slide-stage" id="slide-stage">
+          <div class="slide-frame-meta" id="slide-frame-meta">960x540 · 720pt x 405pt</div>
           <div class="slide-wrapper" id="slide-wrapper">
             <button class="clear-overlay-btn" id="btn-clear-bboxes" title="Clear all boxes on current slide">Clear Boxes</button>
             <iframe id="slide-iframe" sandbox="allow-same-origin allow-scripts" loading="eager"></iframe>
