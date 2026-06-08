@@ -177,6 +177,15 @@ slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
 slides-grab figma      --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 ```
 
+For portrait or document-like decks, the editor preview can use a different page size:
+
+```bash
+slides-grab edit --slides-dir decks/resume --page-size a4
+slides-grab edit --slides-dir decks/custom --width 794px --height 1123px
+```
+
+Supported editor presets include `a4`, `a4-landscape`, `letter`, and `letter-landscape`. Custom lengths default to pixels and also accept `px`, `pt`, or `in`.
+
 > **Warning:** `slides-grab convert` and `slides-grab figma` are currently **experimental / unstable**. Expect best-effort output, layout shifts, and manual cleanup in PowerPoint or Figma.
 
 ### Card News (Square 1:1) Workflow

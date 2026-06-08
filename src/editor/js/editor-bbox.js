@@ -15,14 +15,18 @@ let _onBboxChange = () => {};
 export function onBboxChange(fn) { _onBboxChange = fn; }
 
 export function scaleSlide() {
-  const padX = 12;
-  const padY = 12;
+  const padX = 40;
+  const padY = 56;
   const availW = slideStage.clientWidth - padX;
   const availH = slideStage.clientHeight - padY;
   if (availW <= 0 || availH <= 0) return;
 
   const scale = Math.min(availW / SLIDE_W, availH / SLIDE_H, 1);
-  slideWrapper.style.transform = `scale(${scale})`;
+  const visualW = SLIDE_W * scale;
+  const visualH = SLIDE_H * scale;
+  const left = Math.max(20, Math.round((slideStage.clientWidth - visualW) / 2));
+  const top = Math.max(42, Math.round((slideStage.clientHeight - visualH) / 2));
+  slideWrapper.style.transform = `translate(${left}px, ${top}px) scale(${scale})`;
 }
 
 export function renderContextChips() {

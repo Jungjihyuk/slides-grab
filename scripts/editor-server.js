@@ -33,9 +33,12 @@ const require = createRequire(import.meta.url);
 const {
   DEFAULT_SLIDE_MODE,
   getSlideModeChoices,
-  getSlideModeConfig,
   normalizeSlideMode,
 } = require('../src/slide-mode.cjs');
+const {
+  getPageSizeChoices,
+  resolvePageSizeConfig,
+} = require('../src/page-size.cjs');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -70,8 +73,19 @@ function printUsage() {
   process.stdout.write(`  --port <number>           Server port (default: ${DEFAULT_PORT})\n`);
   process.stdout.write(`  --slides-dir <path>       Slide directory (default: ${DEFAULT_SLIDES_DIR})\n`);
   process.stdout.write(`  --mode <mode>             Slide mode: ${getSlideModeChoices().join(', ')} (default: ${DEFAULT_SLIDE_MODE})\n`);
+  process.stdout.write(`  --page-size <size>        Editor page size: ${getPageSizeChoices().join(', ')}\n`);
+  process.stdout.write(`  --width <length>          Custom editor page width (px default; supports px, pt, in)\n`);
+  process.stdout.write(`  --height <length>         Custom editor page height (px default; supports px, pt, in)\n`);
   process.stdout.write(`  Model is selected in editor UI dropdown.\n`);
   process.stdout.write(`  -h, --help                Show this help message\n`);
+}
+
+function readOptionValue(args, index, optionName) {
+  const next = args[index + 1];
+  if (!next || next.startsWith('-')) {
+    throw new Error(`Missing value for ${optionName}.`);
+  }
+  return next;
 }
 
 function parseArgs(argv) {
@@ -79,6 +93,9 @@ function parseArgs(argv) {
     port: DEFAULT_PORT,
     slidesDir: DEFAULT_SLIDES_DIR,
     mode: DEFAULT_SLIDE_MODE,
+    pageSize: '',
+    width: '',
+    height: '',
     help: false,
   };
 
@@ -90,7 +107,7 @@ function parseArgs(argv) {
     }
 
     if (arg === '--port') {
-      opts.port = Number(argv[i + 1]);
+      opts.port = Number(readOptionValue(argv, i, '--port'));
       i += 1;
       continue;
     }
@@ -101,7 +118,7 @@ function parseArgs(argv) {
     }
 
     if (arg === '--slides-dir') {
-      opts.slidesDir = argv[i + 1];
+      opts.slidesDir = readOptionValue(argv, i, '--slides-dir');
       i += 1;
       continue;
     }
@@ -112,13 +129,46 @@ function parseArgs(argv) {
     }
 
     if (arg === '--mode') {
-      opts.mode = normalizeSlideMode(argv[i + 1]);
+      opts.mode = normalizeSlideMode(readOptionValue(argv, i, '--mode'));
       i += 1;
       continue;
     }
 
     if (arg.startsWith('--mode=')) {
       opts.mode = normalizeSlideMode(arg.slice('--mode='.length));
+      continue;
+    }
+
+    if (arg === '--page-size') {
+      opts.pageSize = readOptionValue(argv, i, '--page-size');
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--page-size=')) {
+      opts.pageSize = arg.slice('--page-size='.length);
+      continue;
+    }
+
+    if (arg === '--width') {
+      opts.width = readOptionValue(argv, i, '--width');
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--width=')) {
+      opts.width = arg.slice('--width='.length);
+      continue;
+    }
+
+    if (arg === '--height') {
+      opts.height = readOptionValue(argv, i, '--height');
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--height=')) {
+      opts.height = arg.slice('--height='.length);
       continue;
     }
 
@@ -141,6 +191,10 @@ function parseArgs(argv) {
 
   opts.slidesDir = opts.slidesDir.trim();
   opts.mode = normalizeSlideMode(opts.mode);
+  opts.pageSize = typeof opts.pageSize === 'string' ? opts.pageSize.trim() : '';
+  opts.width = typeof opts.width === 'string' ? opts.width.trim() : '';
+  opts.height = typeof opts.height === 'string' ? opts.height.trim() : '';
+  opts.pageConfig = resolvePageSizeConfig(opts);
 
   return opts;
 }
@@ -489,6 +543,8 @@ async function startServer(opts) {
   await loadDeps();
   const slidesDirectory = resolve(process.cwd(), opts.slidesDir);
   await mkdir(slidesDirectory, { recursive: true });
+  const pageConfig = opts.pageConfig || resolvePageSizeConfig(opts);
+  const effectiveSlideMode = pageConfig.slideMode || opts.mode;
 
   const runStore = createRunStore();
 
@@ -670,14 +726,20 @@ async function startServer(opts) {
   });
 
   app.get('/api/config', (_req, res) => {
-    const cfg = getSlideModeConfig(opts.mode);
     res.json({
-      slideMode: opts.mode,
-      framePx: { width: cfg.framePx.width, height: cfg.framePx.height },
-      screenshotPx: { width: cfg.screenshotPx.width, height: cfg.screenshotPx.height },
-      sizeLabel: cfg.sizeLabel,
-      aspectRatioLabel: cfg.aspectRatioLabel,
-      coordinateSpaceLabel: cfg.coordinateSpaceLabel,
+      slideMode: effectiveSlideMode,
+      requestedSlideMode: opts.mode,
+      effectiveSlideMode,
+      pageSize: pageConfig.name,
+      pageSizeSource: pageConfig.source,
+      pageSizeLabel: pageConfig.pageSizeLabel,
+      isCustomPageSize: pageConfig.isCustomPageSize,
+      framePx: { width: pageConfig.framePx.width, height: pageConfig.framePx.height },
+      framePt: { width: pageConfig.framePt.width, height: pageConfig.framePt.height },
+      screenshotPx: { width: pageConfig.screenshotPx.width, height: pageConfig.screenshotPx.height },
+      sizeLabel: pageConfig.sizeLabel,
+      aspectRatioLabel: pageConfig.aspectRatioLabel,
+      coordinateSpaceLabel: pageConfig.coordinateSpaceLabel,
     });
   });
 
@@ -749,7 +811,7 @@ async function startServer(opts) {
 
     let normalizedSelections;
     try {
-      normalizedSelections = normalizeSelections(selections, getSlideModeConfig(opts.mode).framePx);
+      normalizedSelections = normalizeSelections(selections, pageConfig.framePx);
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
@@ -796,15 +858,15 @@ async function startServer(opts) {
           slide,
           screenshotPath,
           `http://localhost:${opts.port}/slides`,
-          { useHttp: true, screenshotSize: getSlideModeConfig(opts.mode).screenshotPx },
+          { useHttp: true, screenshotSize: pageConfig.screenshotPx },
         );
-      }, getSlideModeConfig(opts.mode).screenshotPx);
+      }, pageConfig.screenshotPx);
 
       const scaledBoxes = normalizedSelections.map((selection) =>
         scaleSelectionToScreenshot(
           selection.bbox,
-          getSlideModeConfig(opts.mode).framePx,
-          getSlideModeConfig(opts.mode).screenshotPx,
+          pageConfig.framePx,
+          pageConfig.screenshotPx,
         ),
       );
 
@@ -814,7 +876,8 @@ async function startServer(opts) {
         slideFile: slide,
         slidePath: toSlidePathLabel(slidesDirectory, slide),
         userPrompt: prompt,
-        slideMode: opts.mode,
+        slideMode: effectiveSlideMode,
+        slideConfig: pageConfig,
         selections: normalizedSelections,
         designBaseDir: slidesDirectory,
       });
@@ -942,6 +1005,7 @@ async function startServer(opts) {
   process.stdout.write(`  Local:       http://localhost:${opts.port}\n`);
   process.stdout.write(`  Models:      ${ALL_MODELS.join(', ')}\n`);
   process.stdout.write(`  Slides:      ${slidesDirectory}\n`);
+  process.stdout.write(`  Page size:   ${pageConfig.sizeLabel} (${pageConfig.coordinateSpaceLabel})\n`);
   process.stdout.write('  ─────────────────────────────────────\n\n');
 
   let shuttingDown = false;
